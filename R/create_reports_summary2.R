@@ -1,4 +1,3 @@
-
 #' Create a summary file
 #' 
 #' @param directory 

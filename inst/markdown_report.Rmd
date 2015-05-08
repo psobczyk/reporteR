@@ -1,0 +1,13 @@
+TO do Paste name here
+========================================================
+
+Date: `r Sys.time()`
+
+```{r, echo=FALSE,results='asis'}
+library(reporteR)
+library(xtable)
+create_files_table(directory)
+
+
+```
+

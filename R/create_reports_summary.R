@@ -72,7 +72,8 @@ print.xtable(xtable(df), type = \"html\", sanitize.rownames.function = function(
 #### Source files
 
 ```{r, echo=FALSE, results='asis'}
-files <- list.files(path = \".\", pattern = \"*.R$\", recursive = TRUE)
+files <- 
+
 
 df <- data.frame()
 for(file in files){
