@@ -7,8 +7,7 @@ date: "`r format(Sys.time(), '%x')`"
 abstract: Put abstract here
 output:
   reporteR::abstract_report:
-    toc: false
-
+    toc: true
 ---
 
 
@@ -16,7 +15,6 @@ output:
 
 
 ## Conclusions
-
 
 #### Session info
 ```{r session-info, echo=FALSE, results='asis'}
