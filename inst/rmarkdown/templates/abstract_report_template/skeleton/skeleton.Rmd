@@ -1,0 +1,24 @@
+---
+title: "Untitled"
+author: Piotr Sobczyk
+header-includes:
+  <p><img height="100" src="wroclaw.png"/> </p>
+date: "`r format(Sys.time(), '%x')`"
+abstract: Put abstract here
+output:
+  reporteR::abstract_report:
+    toc: false
+
+---
+
+
+## Overview
+
+
+## Conclusions
+
+
+#### Session info
+```{r session-info, echo=FALSE, results='asis'}
+sessionInfo()
+```
