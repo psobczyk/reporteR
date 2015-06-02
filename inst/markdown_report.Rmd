@@ -9,3 +9,10 @@ Date: `r Sys.time()`
 library(reporteR)
 create_files_table_DT(directory) 
 ```
+
+
+#### Source files
+
+```{r, echo=FALSE}
+create_files_table_DT_source(directory) 
+```

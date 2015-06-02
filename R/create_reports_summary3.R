@@ -3,13 +3,11 @@
 #' @export
 create_reports_summary3 <- function(directory = "./", file_name = "toc") {
   knitting_env <- new.env()
-  assign("directory", directory, knitting_env)
-  knitr:::knit(input = system.file("markdown_report.Rmd", package = "reporteR"), 
-               output = paste0(file_name, ".md"), envir = knitting_env, quiet = TRUE)
+  assign("directory", paste0(getwd(), "/", directory), knitting_env)
   output <-  paste0(getwd(), "/", directory, file_name, ".html")
-  rmarkdown::render(input = system.file("markdown_report.Rmd", package = "reporteR"),
+  rmarkdown::render(input = system.file("markdown_report.Rmd", package = "reporteR"), 
                     output_format = "html_document", output_file = output,
-                    encoding="UTF-8", quiet = TRUE)
+                    encoding="UTF-8", quiet = FALSE, envir = knitting_env)
 }
 
 #' Create a summary table
@@ -26,7 +24,7 @@ create_files_table <- function(directory) {
   })
 }
     
-#' Create a summary table
+#' Create a summary table with DT package
 #' 
 #' @export
 create_files_table_DT <- function(directory) {
@@ -84,12 +82,41 @@ create_files_table_DT <- function(directory) {
 }
 
 
+
+
+#' Create a summary table of source files with DT package
+#' 
+#' @export
+create_files_table_DT_source <- function(directory){
+  files <- list.files(path = directory, pattern = "*.R$", recursive = TRUE)                 
+  df <- data.frame()
+  for(file in files){
+    df <- rbind(df, file.info(file))
+  }                
+  if(nrow(df)>0){
+    df$mtime <- format(df$mtime, "%Y-%m-%d %H:%M")
+    df$ctime <- format(df$ctime, "%Y-%m-%d")
+    df$atime <- format(df$atime, "%Y-%m-%d")
+    df$ctime <- NULL
+    df$atime <- NULL
+    df$mode <- NULL
+    df$isdir <- NULL
+    df$uid <- NULL
+    df$gid <- NULL
+    df$uname <- NULL
+    df$grname <- NULL
+    colnames(df) <- c("Size", "Modification time")
+    rownames(df) <-paste0('<a href="', rownames(df), '">', rownames(df), '</a>')
+    datatable(df, options = list(iDisplayLength = 5), escape = FALSE)
+  }
+}
+
 pattern_lines <- function(pattern, all_lines) {
   source_lines <- grep(pattern, all_lines, fixed = FALSE)
   source_file_names <- if(length(source_lines) > 0) {
     vapply(all_lines[source_lines], function(single_line)
       strsplit(strsplit(single_line, pattern, fixed = FALSE)[[1]][[2]],
-               '\"')[[1]][[1]], "a")
+               '"')[[1]][[1]], "a")
   } else {
     ""
   }

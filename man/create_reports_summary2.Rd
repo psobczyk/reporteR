@@ -4,7 +4,7 @@
 \alias{create_reports_summary2}
 \title{Create a summary file}
 \usage{
-create_reports_summary2(directory, type = "html")
+create_reports_summary2(directory = "./", type = "html")
 }
 \arguments{
 \item{directory}{}

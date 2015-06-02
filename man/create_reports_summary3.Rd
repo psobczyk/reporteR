@@ -4,7 +4,7 @@
 \alias{create_reports_summary3}
 \title{Create a summary file}
 \usage{
-create_reports_summary3(directory, file_name = "toc")
+create_reports_summary3(directory = "./", file_name = "toc")
 }
 \description{
 Create a summary file
