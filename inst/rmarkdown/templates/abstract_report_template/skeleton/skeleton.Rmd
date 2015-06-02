@@ -12,11 +12,15 @@ output:
 
 
 ## Overview
-
+Do whatever you like to do. 
 
 ## Conclusions
+You are encouraged to us [references like this] [id].
+
 
 #### Session info
 ```{r session-info, echo=FALSE, results='asis'}
 sessionInfo()
 ```
+
+[id]: http://example.com/  "Optional Title Here"
