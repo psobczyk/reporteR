@@ -3,7 +3,7 @@
 #' @param directory 
 #' @param filename
 #' @export
-create_reports_summary2 <- function(directory, type="html"){
+create_reports_summary2 <- function(directory = "./", type="html"){
   library(markdown)
   library(rmarkdown)
   file.create("toc.Rmd")

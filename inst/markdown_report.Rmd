@@ -3,11 +3,9 @@ TO do Paste name here
 
 Date: `r Sys.time()`
 
-```{r, echo=FALSE,results='asis'}
+#### Reports
+
+```{r, echo=FALSE}
 library(reporteR)
-library(xtable)
-create_files_table(directory)
-
-
+create_files_table_DT(directory) 
 ```
-
