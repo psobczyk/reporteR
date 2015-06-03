@@ -5,7 +5,7 @@ create_reports_summary3 <- function(directory = "./", file_name = "toc") {
   knitting_env <- new.env()
   assign("directory", paste0(getwd(), "/", directory), knitting_env)
   output <-  paste0(getwd(), "/", directory, file_name, ".html")
-  rmarkdown::render(input = system.file("markdown_report.Rmd", package = "reporteR"), 
+  rmarkdown::render(input = system.file("markdown_report.Rmd", package = "reporteR"),  
                     output_format = "html_document", output_file = output,
                     encoding="UTF-8", quiet = FALSE, envir = knitting_env)
 }
@@ -29,31 +29,15 @@ create_files_table <- function(directory) {
 #' @export
 create_files_table_DT <- function(directory) {
   library(DT)
-  library(xtable)
-  files <- list.files(path = directory, pattern = "*.html$", recursive = TRUE)
-  
+  setwd(directory)
+  files <- list.files(path = directory, pattern = "*.html$", recursive = TRUE)  
   df <- data.frame()
   for(file in files){
     fileRmd <- paste0(substr(file, 1, nchar(file)-5), ".Rmd")
     if(file.exists(fileRmd)){
       all_lines <- readLines(fileRmd)
-      source_lines <- grep("^abstract:", all_lines, fixed = FALSE)
-      single_line <- all_lines[source_lines]
-      if(length(single_line)>0){
-        abstract <- strsplit(single_line, 'abstract: ', fixed = TRUE)[[1]][2]
-      } else{
-        abstract <- ""
-      }
-      source_lines <- grep("^title:", all_lines, fixed = FALSE)
-      single_line <- all_lines[source_lines]
-      if(length(single_line)>0){
-        title <- strsplit(single_line, 'title: ', fixed = TRUE)[[1]][2]
-      } else{
-        title <- "None"
-      }
-    } else{
-      abstract <- ""
-      title <- "None"
+      abstract <- pattern_lines("^abstract:", all_lines)
+      title <- pattern_lines("^title:", all_lines)
     }
     names(abstract) <- "abstract"
     names(title) <- "title"
@@ -82,12 +66,12 @@ create_files_table_DT <- function(directory) {
 }
 
 
-
-
 #' Create a summary table of source files with DT package
 #' 
 #' @export
 create_files_table_DT_source <- function(directory){
+  library(DT)
+  setwd(directory)
   files <- list.files(path = directory, pattern = "*.R$", recursive = TRUE)                 
   df <- data.frame()
   for(file in files){
