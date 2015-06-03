@@ -7,7 +7,7 @@ create_reports_summary <- function(directory = "./", file_name = "toc") {
   output <-  paste0(getwd(), "/", directory, file_name, ".html")
   rmarkdown::render(input = system.file("markdown_report.Rmd", package = "reporteR"),  
                     output_format = "html_document", output_file = output,
-                    encoding="UTF-8", quiet = FALSE, envir = knitting_env)
+                    encoding="UTF-8", quiet = TRUE, envir = knitting_env)
 }
 
 #' Create a summary table
@@ -36,8 +36,9 @@ create_files_table_DT <- function(directory) {
     fileRmd <- paste0(substr(file, 1, nchar(file)-5), ".Rmd")
     if(file.exists(fileRmd)){
       all_lines <- readLines(fileRmd)
-      abstract <- pattern_lines("^abstract:", all_lines)
-      title <- pattern_lines("^title:", all_lines)
+      abstract <- pattern_line("^abstract:", all_lines)
+      title <- pattern_line("^title:", all_lines)
+      if(title==" ") title <- "None"
     }
     names(abstract) <- "abstract"
     names(title) <- "title"
@@ -56,12 +57,13 @@ create_files_table_DT <- function(directory) {
   df$gid <- NULL
   df$uname <- NULL
   df$grname <- NULL
-  df$Source <-  paste0('<a href="', getwd(), '/', df$fileRmd, '">', "Download", '</a>')
+  df$Source <-  paste0('<a href="', df$fileRmd, '">', "Download", '</a>')
   df$fileRmd <- NULL
   df$FileName <- rownames(df)
+  df$FileName <- gsub(x= df$FileName, "/", "/\n")
   colnames(df) <- c("Size", "Modification time", "Abstract", "Title", "Source", "Filename")
   rownames(df) <- paste0('<a href="', rownames(df), '">', df$Title, '</a>')
-  df <- df[c("Abstract", "Source", "Filename", "Modification time", "Size")]
+  df <- df[c("Abstract", "Modification time", "Size", "Source", "Filename")]
   datatable(df, options = list(iDisplayLength = 5), escape = FALSE)
 }
 
@@ -72,11 +74,11 @@ create_files_table_DT <- function(directory) {
 create_files_table_DT_source <- function(directory){
   library(DT)
   setwd(directory)
-  files <- list.files(path = directory, pattern = "*.R$", recursive = TRUE)                 
+  files <- list.files(path = directory, pattern = "*.R$", recursive = TRUE)
   df <- data.frame()
   for(file in files){
     df <- rbind(df, file.info(file))
-  }                
+  }
   if(nrow(df)>0){
     df$mtime <- format(df$mtime, "%Y-%m-%d %H:%M")
     df$ctime <- format(df$ctime, "%Y-%m-%d")
@@ -95,6 +97,17 @@ create_files_table_DT_source <- function(directory){
   }
 }
 
+pattern_line <- function(pattern, all_lines) {
+  source_lines <- grep(pattern, all_lines, fixed = FALSE)
+  if(length(source_lines) > 0) {
+    vapply(all_lines[source_lines], function(single_line)
+      strsplit(single_line, pattern, fixed = FALSE)[[1]][[2]], "a")
+  } else {
+    "None"
+  }
+}
+
+
 pattern_lines <- function(pattern, all_lines) {
   source_lines <- grep(pattern, all_lines, fixed = FALSE)
   source_file_names <- if(length(source_lines) > 0) {
@@ -102,6 +115,6 @@ pattern_lines <- function(pattern, all_lines) {
       strsplit(strsplit(single_line, pattern, fixed = FALSE)[[1]][[2]],
                '"')[[1]][[1]], "a")
   } else {
-    ""
+    "None"
   }
 }

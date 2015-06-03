@@ -1,18 +1,20 @@
-TO do Paste name here
+List of reports and sources files from directory 
+========================================================
+`r directory`
 ========================================================
 
-Date: `r Sys.time()`
+Created on: `r Sys.time()`
 
 
-#### Reports
+### Reports
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 library(reporteR)
 create_files_table_DT(directory) 
 ```
 
 
-#### Source files
+### Source files
 
 ```{r, echo=FALSE}
 create_files_table_DT_source(directory) 
