@@ -1,136 +1,107 @@
-
 #' Create a summary file
 #' 
+#' @export
+create_reports_summary <- function(directory = "./", file_name = "toc") {
+  knitting_env <- new.env()
+  assign("directory", paste0(getwd(), "/", directory), knitting_env)
+  output <-  paste0(getwd(), "/", directory, file_name, ".html")
+  rmarkdown::render(input = system.file("markdown_report.Rmd", package = "reporteR"),  
+                    output_format = "html_document", output_file = output,
+                    encoding="UTF-8", quiet = FALSE, envir = knitting_env)
+}
+
+#' Create a summary table
 #' 
-create_reports_summary <- function(directory, type="html"){
-  file.create("toc.Rmd")
-  currentDir <- getwd()
-  newDir <- directory
-  text <- "
-```{r, echo=FALSE, warning=FALSE}
-files <- list.files(path = \".\", pattern = \"*.html$\", recursive = TRUE)
-
-df <- data.frame()
-for(file in files){
-fileRmd <- paste0(substr(file, 1, nchar(file)-5), \".Rmd\")
-if(file.exists(fileRmd)){
-  all_lines <- readLines(fileRmd)
-  source_lines <- grep(\"^abstract:\", all_lines, fixed = FALSE)
-  single_line <- all_lines[source_lines]
-  if(length(single_line)>0){
-  abstract <- strsplit(single_line, 'abstract: ', fixed = TRUE)[[1]][2]
-  } else{
-  abstract <- \"\"
+#' @export
+create_files_table <- function(directory) {
+  repo_files <- list.files(path = directory, recursive = TRUE)
+  sapply(repo_files, function(single_file) {
+    all_lines <- readLines(paste0(directory, "/", single_file))
+    title <- pattern_lines("^title:", all_lines)
+    abstract <- pattern_lines("^abstract:", all_lines)
+    sources <- pattern_lines("^source\\(", all_lines)
+    c(title, abstract, sources)
+  })
+}
+    
+#' Create a summary table with DT package
+#' 
+#' @export
+create_files_table_DT <- function(directory) {
+  library(DT)
+  setwd(directory)
+  files <- list.files(path = directory, pattern = "*.html$", recursive = TRUE)  
+  df <- data.frame()
+  for(file in files){
+    fileRmd <- paste0(substr(file, 1, nchar(file)-5), ".Rmd")
+    if(file.exists(fileRmd)){
+      all_lines <- readLines(fileRmd)
+      abstract <- pattern_lines("^abstract:", all_lines)
+      title <- pattern_lines("^title:", all_lines)
+    }
+    names(abstract) <- "abstract"
+    names(title) <- "title"
+    df <- rbind(df, cbind(file.info(file), fileRmd, abstract, title))
   }
-  source_lines <- grep(\"^title:\", all_lines, fixed = FALSE)
-  single_line <- all_lines[source_lines]
-  if(length(single_line)>0){
-  title <- strsplit(single_line, 'title: ', fixed = TRUE)[[1]][2]
-  } else{
-  title <- \"None\"
+  
+  df$mtime <- format(df$mtime, "%Y-%m-%d %H:%M")
+  df$ctime <- format(df$ctime, "%Y-%m-%d")
+  df$atime <- format(df$atime, "%Y-%m-%d")
+  df$size <- paste(trimws(format(df$size/1024, digits = 1)), "kB")
+  df$ctime <- NULL
+  df$atime <- NULL
+  df$mode <- NULL
+  df$isdir <- NULL
+  df$uid <- NULL
+  df$gid <- NULL
+  df$uname <- NULL
+  df$grname <- NULL
+  df$Source <-  paste0('<a href="', getwd(), '/', df$fileRmd, '">', "Download", '</a>')
+  df$fileRmd <- NULL
+  df$FileName <- rownames(df)
+  colnames(df) <- c("Size", "Modification time", "Abstract", "Title", "Source", "Filename")
+  rownames(df) <- paste0('<a href="', rownames(df), '">', df$Title, '</a>')
+  df <- df[c("Abstract", "Source", "Filename", "Modification time", "Size")]
+  datatable(df, options = list(iDisplayLength = 5), escape = FALSE)
+}
+
+
+#' Create a summary table of source files with DT package
+#' 
+#' @export
+create_files_table_DT_source <- function(directory){
+  library(DT)
+  setwd(directory)
+  files <- list.files(path = directory, pattern = "*.R$", recursive = TRUE)                 
+  df <- data.frame()
+  for(file in files){
+    df <- rbind(df, file.info(file))
+  }                
+  if(nrow(df)>0){
+    df$mtime <- format(df$mtime, "%Y-%m-%d %H:%M")
+    df$ctime <- format(df$ctime, "%Y-%m-%d")
+    df$atime <- format(df$atime, "%Y-%m-%d")
+    df$ctime <- NULL
+    df$atime <- NULL
+    df$mode <- NULL
+    df$isdir <- NULL
+    df$uid <- NULL
+    df$gid <- NULL
+    df$uname <- NULL
+    df$grname <- NULL
+    colnames(df) <- c("Size", "Modification time")
+    rownames(df) <-paste0('<a href="', rownames(df), '">', rownames(df), '</a>')
+    datatable(df, options = list(iDisplayLength = 5), escape = FALSE)
   }
-} else{
-  abstract <- \"\"
-  title <- \"None\"
-}
-names(abstract) <- \"abstract\"
-names(title) <- \"title\"
-df <- rbind(df, cbind(file.info(file), fileRmd, abstract, title))
 }
 
-df$mtime <- format(df$mtime, \"%Y-%m-%d %H:%M\")
-df$ctime <- format(df$ctime, \"%Y-%m-%d\")
-df$atime <- format(df$atime, \"%Y-%m-%d\")
-df$size <- paste(trimws(format(df$size/1024, digits = 1)), \"kB\")
-df$ctime <- NULL
-df$atime <- NULL
-df$mode <- NULL
-df$isdir <- NULL
-df$uid <- NULL
-df$gid <- NULL
-df$uname <- NULL
-df$grname <- NULL
-df$Source <-  paste0('[', \"Download\", '](', getwd(), '/', df$fileRmd, ')')
-df$fileRmd <- NULL
-df$FileName <- rownames(df)
-colnames(df) <- c(\"Size\", \"Modification time\", \"Abstract\", \"Title\", \"Source\", \"Filename\")
-rownames(df) <- paste0('[', df$Title, '](', getwd(), '/', rownames(df), ')')
-df <- df[c(\"Abstract\", \"Source\", \"Filename\", \"Modification time\", \"Size\")]
-```
-
-#### Reports
-
-```{r, echo=FALSE, results='asis'}
-library(xtable)
-print.xtable(xtable(df), type = \"html\", sanitize.rownames.function = function(x) x)
-```
-
-----
-
-----
-
-#### Source files
-
-```{r, echo=FALSE, results='asis'}
-files <- 
-
-
-df <- data.frame()
-for(file in files){
-# all_lines <- readLines(file)
-# source_lines <- grep(\"^abstract:\", all_lines, fixed = FALSE)
-# single_line <- all_lines[source_lines]
-# if(length(single_line)>0){
-# abstract <- strsplit(single_line, 'abstract: ', fixed = TRUE)[[1]][2]
-# } else{
-# abstract <- \"\"
-# }
-# names(abstract) <- \"abstract\"
-# source_lines <- grep(\"^title:\", all_lines, fixed = FALSE)
-# single_line <- all_lines[source_lines]
-# if(length(single_line)>0){
-# title <- strsplit(single_line, 'title: ', fixed = TRUE)[[1]][2]
-# } else{
-# title <- \"None\"
-# }
-# names(title) <- \"title\"
-# df <- rbind(df, cbind(file.info(file), abstract, title))
-df <- rbind(df, file.info(file))
-}
-
-if(nrow(df)>0){
-df$mtime <- format(df$mtime, \"%Y-%m-%d %H:%M\")
-df$ctime <- format(df$ctime, \"%Y-%m-%d\")
-df$atime <- format(df$atime, \"%Y-%m-%d\")
-df$ctime <- NULL
-df$atime <- NULL
-df$mode <- NULL
-df$isdir <- NULL
-df$uid <- NULL
-df$gid <- NULL
-df$uname <- NULL
-df$grname <- NULL
-colnames(df) <- c(\"Size\", \"Modification time\")
-rownames(df) <- paste0('[', rownames(df), '](', getwd(), '/', rownames(df), ')')
-print.xtable(xtable(df), type = \"html\", sanitize.rownames.function = function(x) x)
-} else{
-print(\"No source files found\")
-}
-```
-  "
-  prevText <- paste0("`r library(knitr); opts_knit$set(root.dir = \"", newDir, "\")`\n")
-  fileConn<-file("toc.Rmd")
-  print(paste(text))
-  writeLines(paste(prevText, text), fileConn)
-  close(fileConn)
-  print(newDir)
-  setwd(newDir)
-  setwd(currentDir)
-  knit("toc.Rmd")
-  pandoc("toc.md")
-  file.remove("toc.Rmd")
-  file.remove("toc.md")
-  browseURL("toc.html")
-  
-  
+pattern_lines <- function(pattern, all_lines) {
+  source_lines <- grep(pattern, all_lines, fixed = FALSE)
+  source_file_names <- if(length(source_lines) > 0) {
+    vapply(all_lines[source_lines], function(single_line)
+      strsplit(strsplit(single_line, pattern, fixed = FALSE)[[1]][[2]],
+               '"')[[1]][[1]], "a")
+  } else {
+    ""
+  }
 }
